@@ -25,6 +25,9 @@ const errorHandler = (err, req, res, next) => {
         } else {
             // Programming or other unknown error: don't leak details
             console.error('ERROR 💥', err);
+            if (err.name === 'ValidationError') {
+                console.error('Validation Errors:', JSON.stringify(err.errors, null, 2));
+            }
             res.status(500).json({
                 status: 'error',
                 code: 'INTERNAL_ERROR',

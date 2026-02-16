@@ -27,8 +27,10 @@ export const AuthProvider = ({ children }) => {
                 setUser(meRes.data.data);
             } catch (err) {
                 // Token invalid or expired
+                console.log('Session expired or invalid, clearing auth state.');
                 localStorage.removeItem('hasSession');
                 setUser(null);
+                delete api.defaults.headers.common['Authorization'];
             }
             setLoading(false);
         };

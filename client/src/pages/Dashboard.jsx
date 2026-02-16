@@ -186,7 +186,7 @@ const Dashboard = () => {
                                                 type="number"
                                                 min="0"
                                                 max={item.book.files?.totalPages || 100}
-                                                defaultValue={Math.round((item.progress / 100) * (item.book.files?.totalPages || 100))}
+                                                defaultValue={Math.round(((item.progress || 0) / 100) * (item.book.files?.totalPages || 100))}
                                                 onBlur={(e) => {
                                                     const page = parseInt(e.target.value);
                                                     const total = item.book.files?.totalPages || 100;

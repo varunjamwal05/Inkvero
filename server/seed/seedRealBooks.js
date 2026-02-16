@@ -100,8 +100,17 @@ const seedRealBooks = async () => {
         let uploader = await User.findOne({ role: 'admin' });
         if (!uploader) uploader = await User.findOne();
         if (!uploader) {
-            console.error('No user found');
-            process.exit(1);
+            console.log('⚠️ No user found. Creating default admin...');
+            const salt = await require('bcryptjs').genSalt(10);
+            const hashedPassword = await require('bcryptjs').hash('admin123', salt);
+
+            uploader = await User.create({
+                username: 'admin',
+                email: 'admin@inkvero.com',
+                password: hashedPassword,
+                role: 'admin'
+            });
+            console.log('✔ Default admin created.');
         }
 
         // 2. Clear Books
