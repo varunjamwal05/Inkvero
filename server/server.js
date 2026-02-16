@@ -44,8 +44,9 @@ dirs.forEach(dir => {
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-    origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174'],
+    origin: [clientUrl, 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true
 }));
 app.use(express.json());
