@@ -1,0 +1,58 @@
+Found 39 books.
+
+TITLE                                    | GENRE           | COVER URL
+----------------------------------------------------------------------------------------------------
+The Crystal Kingdom                      | Fantasy         | https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=300&q=80
+Dragon's Oath                            | Fantasy         | https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80
+Shadows of Eldoria                       | Fantasy         | https://images.unsplash.com/photo-1630327389467-3c35b804c861?auto=format&fit=crop&w=300&q=80
+The Sorcerer's Legacy                    | Fantasy         | https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?auto=format&fit=crop&w=300&q=80
+Crown of Starlight                       | Fantasy         | https://images.unsplash.com/photo-1462759353907-b2ea5ebd72e7?auto=format&fit=crop&w=300&q=80
+Whispers of the Fae                      | Fantasy         | https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?auto=format&fit=crop&w=300&q=80
+The Gilded Spire                         | Fantasy         | https://images.unsplash.com/photo-1535581652167-3d6b98c9261d?auto=format&fit=crop&w=300&q=80
+Blade of the Moon                        | Fantasy         | https://images.unsplash.com/photo-1601323332709-3cb365532581?auto=format&fit=crop&w=300&q=80
+Love in Paris                            | Romance         | https://images.unsplash.com/photo-1499856871940-a09e32823645?auto=format&fit=crop&w=300&q=80
+The Heart's Choice                       | Romance         | https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?auto=format&fit=crop&w=300&q=80
+Summer at the Lake                       | Romance         | https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=300&q=80
+Forever Yours                            | Romance         | https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=300&q=80
+Secret Admirer                           | Romance         | https://images.unsplash.com/photo-1474552226712-ac0f0961a954?auto=format&fit=crop&w=300&q=80
+Wedding of the Season                    | Romance         | https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80
+Midnight Kisses                          | Romance         | https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=300&q=80
+The Haunted Manor                        | Horror          | https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&w=300&q=80
+Whispers in the Dark                     | Horror          | https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=300&q=80
+The Cursed Doll                          | Horror          | https://images.unsplash.com/photo-1481018085669-2bc6e4f00eed?auto=format&fit=crop&w=300&q=80
+Nightmare Alley                          | Horror          | https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?auto=format&fit=crop&w=300&q=80
+The Silent Woods                         | Horror          | https://images.unsplash.com/photo-1472552944129-b035e9ea514e?auto=format&fit=crop&w=300&q=80
+Blood Moon Ritual                        | Horror          | https://images.unsplash.com/photo-1518331483807-f6adc0e14d31?auto=format&fit=crop&w=300&q=80
+Atomic Habits                            | Self-Help       | https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80
+The Power of Now                         | Self-Help       | https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=300&q=80
+Mindset Shift                            | Self-Help       | https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=300&q=80
+Deep Work                                | Self-Help       | https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=300&q=80
+The 5 AM Club                            | Self-Help       | https://images.unsplash.com/photo-1494178270175-e96de2971df9?auto=format&fit=crop&w=300&q=80
+Limitless                                | Self-Help       | https://images.unsplash.com/photo-1515696955266-4f67e13219e8?auto=format&fit=crop&w=300&q=80
+Clean Code                               | Non-Fiction     | https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80
+The Pragmatic Programmer                 | Non-Fiction     | https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=300&q=80
+Zero to One                              | Non-Fiction     | https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80
+Rich Dad Poor Dad                        | Non-Fiction     | https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=300&q=80
+Sapiens                                  | Non-Fiction     | https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=300&q=80
+Educated                                 | Non-Fiction     | https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80
+Dune                                     | Sci-Fi          | https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=300&q=80
+Neuromancer                              | Sci-Fi          | https://images.unsplash.com/photo-1614730341194-75c60740a070?auto=format&fit=crop&w=300&q=80
+The Martian                              | Sci-Fi          | https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80
+Project Hail Mary                        | Sci-Fi          | https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=300&q=80
+Foundation                               | Sci-Fi          | https://images.unsplash.com/photo-1454789548728-85d2696cfb9e?auto=format&fit=crop&w=300&q=80
+Snow Crash                               | Sci-Fi          | https://images.unsplash.com/photo-1506318137071-a8bcbf6755dd?auto=format&fit=crop&w=300&q=80
+
+
+GENRE DISTRIBUTION:
+Fantasy: 8
+Romance: 7
+Horror: 6
+Self-Help: 6
+Non-Fiction: 6
+Sci-Fi: 6
+
+
+DUPLICATE COVERS (Verification of Variety):
+URL repeated 2 times: https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?auto=format&fit=crop&w=300&q=80
+URL repeated 2 times: https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80
+2 unique covers are used more than once.
