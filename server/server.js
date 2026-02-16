@@ -46,7 +46,7 @@ app.use(helmet({
 }));
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-    origin: [clientUrl, 'http://localhost:5173', 'http://localhost:5174'],
+    origin: [clientUrl, 'http://localhost:5173', 'https://inkvero.vercel.app'],
     credentials: true
 }));
 app.use(express.json());
