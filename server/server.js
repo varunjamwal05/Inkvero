@@ -56,8 +56,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Serve static book covers
-app.use('/book-covers', express.static('public/book-covers'));
-app.use('/uploads', express.static('uploads'));
+app.use('/book-covers', express.static(path.join(__dirname, 'public/book-covers')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount routers
 app.use('/api/v1/auth', authRoutes);
@@ -70,8 +70,12 @@ app.use('/api/v1/admin', require('./routes/adminRoutes'));
 
 // Health check
 app.get('/', (req, res) => {
+    console.log('Health check hit');
     res.status(200).json({ status: 'success', message: 'Inkvero API is running' });
 });
+
+// Favicon handler
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // 404 Handler
 // app.all('*', (req, res, next) => {
