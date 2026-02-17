@@ -11,7 +11,7 @@ exports.interactWithBook = catchAsync(async (req, res, next) => {
     const bookId = req.params.bookId;
     const userId = req.user.id;
 
-    const state = await UserBookState.findOne({ user: userId, book: bookId });
+    let state = await UserBookState.findOne({ user: userId, book: bookId });
 
     if (!state) {
         state = new UserBookState({ user: userId, book: bookId });
