@@ -147,14 +147,14 @@ const ProfilePage = () => {
                                         <div className="group relative bg-[#0A0A0A] border border-white/5 hover:border-[#D4AF37]/30 rounded-sm p-6 flex gap-6 transition-all duration-500 hover:bg-[#0C0C0C]">
                                             <div className="w-20 h-28 bg-zinc-900 shadow-lg shrink-0 overflow-hidden relative">
                                                 <img
-                                                    src={stats.currentlyReading.book.coverImage}
+                                                    src={stats.currentlyReading.book.coverUrl}
                                                     alt={stats.currentlyReading.book.title}
                                                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                                                 />
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <h4 className="font-heading text-2xl text-white mb-2 leading-none group-hover:text-[#D4AF37] transition-colors">{stats.currentlyReading.book.title}</h4>
-                                                <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">by {stats.currentlyReading.book.authors?.[0] || 'Unknown'}</p>
+                                                <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">by {stats.currentlyReading.book.author || 'Unknown'}</p>
                                                 <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden max-w-[200px]">
                                                     <div className="h-full bg-[#D4AF37] w-1/3"></div> {/* Mock Progress */}
                                                 </div>

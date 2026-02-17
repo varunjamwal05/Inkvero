@@ -46,7 +46,7 @@ app.use(helmet({
 }));
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-    origin: ["https://inkvero.vercel.app", "http://localhost:5173", clientUrl, /\.vercel\.app$/], // Allow Vercel previews
+    origin: ["https://inkvero.vercel.app", "http://localhost:5173", "http://localhost:5174", clientUrl, /\.vercel\.app$/], // Allow Vercel previews
     credentials: true
 }));
 app.use(express.json());

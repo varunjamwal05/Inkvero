@@ -36,6 +36,7 @@ exports.register = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
         status: 'success',
+        token, // Return token for client-side storage
         data: {
             _id: user._id,
             username: user.username,
@@ -78,6 +79,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
         status: 'success',
+        token, // Return token for client-side storage
         data: {
             _id: user._id,
             username: user.username,
@@ -145,7 +147,8 @@ exports.refresh = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
         status: 'success',
-        accessToken: newAccessToken
+        accessToken: newAccessToken,
+        token: newAccessToken // Standardize on 'token' or 'accessToken'
     });
 });
 

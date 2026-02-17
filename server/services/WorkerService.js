@@ -71,42 +71,33 @@ class WorkerService {
     }
 
     async updateBookStats({ bookId, rating }) {
-        if (!rating) return;
+        const mongoose = require('mongoose');
+        const UserBookState = require('../models/UserBookState');
 
-        // Atomic update
-        // Running avg approximation: 
-        // This is hard to do purely atomically without reading old values if we want exact math.
-        // Simpler approach for MVP: $inc count, and we just push rating to array? No, array is too big.
-        // We'll use the "Increment and drift" approach, and rely on a weekly "VerifyBookStatsJob" to fix.
+        try {
+            const objectId = new mongoose.Types.ObjectId(bookId);
 
-        // But we need the *current* avg to update it atomically?
-        // UserBookState is the source of truth.
-        // For now, let's just do a read-update-write but inside the worker it's safer than HTTP request.
-        // Or just inc count and re-calc average from aggregation?
-        // Let's do Aggregation. It's safer.
+            // Re-calculate average from UserBookStates
+            const result = await UserBookState.aggregate([
+                { $match: { book: objectId, rating: { $exists: true, $ne: null } } },
+                { $group: { _id: '$book', avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+            ]);
 
-        const stats = await Book.aggregate([
-            { $match: { _id: require('mongoose').Types.ObjectId(bookId) } },
-            // Actually we need to aggregate UserBookStates for this book
-            // ...
-        ]);
-
-        // Changing approach: Just increment count.
-        await Book.findByIdAndUpdate(bookId, {
-            $inc: { 'stats.ratingCount': 1 }
-        });
-        // For avgRating, we really need to re-calculate from UserBookStates.
-        // Trigger Recalculate Logic
-        const result = await require('../models/UserBookState').aggregate([
-            { $match: { book: require('mongoose').Types.ObjectId(bookId), rating: { $exists: true } } },
-            { $group: { _id: '$book', avg: { $avg: '$rating' }, count: { $sum: 1 } } }
-        ]);
-
-        if (result.length > 0) {
-            await Book.findByIdAndUpdate(bookId, {
-                'stats.avgRating': result[0].avg,
-                'stats.ratingCount': result[0].count
-            });
+            if (result.length > 0) {
+                await Book.findByIdAndUpdate(bookId, {
+                    'stats.avgRating': result[0].avg,
+                    'stats.ratingCount': result[0].count
+                });
+                console.log(`Updated stats for book ${bookId}: Avg ${result[0].avg}, Count ${result[0].count}`);
+            } else {
+                // Handle case where all reviews might be removed (unlikely but possible)
+                await Book.findByIdAndUpdate(bookId, {
+                    'stats.avgRating': 0,
+                    'stats.ratingCount': 0
+                });
+            }
+        } catch (error) {
+            console.error('Error updating book stats:', error);
         }
     }
 }

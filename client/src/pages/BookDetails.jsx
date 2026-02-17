@@ -13,6 +13,7 @@ const BookDetails = () => {
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState([]);
     const [myState, setMyState] = useState(null);
+    const [isEditingReview, setIsEditingReview] = useState(false);
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -21,12 +22,22 @@ const BookDetails = () => {
                 setBook(data.data);
 
                 if (user) {
-                    // Fetch groups for this book
+                    // Fetch groups
                     try {
                         const groupsRes = await api.get(`/groups/book/${id}`);
                         setGroups(groupsRes.data.data);
                     } catch (e) {
                         console.error("Failed to fetch groups", e);
+                    }
+
+                    // Fetch user interaction
+                    try {
+                        const interactionRes = await api.get(`/interactions/${id}`);
+                        if (interactionRes.data.data) {
+                            setMyState(interactionRes.data.data);
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch interaction", e);
                     }
                 }
             } catch (err) {
@@ -38,19 +49,27 @@ const BookDetails = () => {
         fetchBook();
     }, [id, user]);
 
-    const handleStatusUpdate = async (status) => {
+    const handleStatusUpdate = async (status, rating, review) => {
         if (!user) return navigate('/login');
         try {
-            await api.post(`/interactions/${id}`, { status });
-            // update local state or refetch
+            const payload = {};
+            if (status) payload.status = status;
+            if (rating) payload.rating = rating;
+            if (review !== undefined) payload.review = review;
+
+            const { data } = await api.post(`/interactions/${id}`, payload);
+            setMyState(data.data);
+
+            // feedback
             if (status === 'READING') {
-                const pdfUrl = book.files?.pdf || "https://pdfobject.com/pdf/sample.pdf"; // Fallback for demo
+                const pdfUrl = book.files?.pdf || "https://pdfobject.com/pdf/sample.pdf";
                 window.open(pdfUrl, '_blank');
             } else {
-                alert('Status updated!');
+                alert('Updated successfully!');
             }
         } catch (err) {
-            console.error(err);
+            console.error('Interaction failed:', err);
+            alert('Action failed: ' + (err.response?.data?.message || err.message));
         }
     };
 
@@ -127,12 +146,12 @@ const BookDetails = () => {
                             <div className="flex items-center gap-6 text-sm text-white/50">
                                 <span className="flex items-center gap-1.5">
                                     <Star className="text-[#d4af37]" size={14} fill="currentColor" />
-                                    <span className="text-white/70">{book.stats?.averageRating?.toFixed(1) || '0.0'}</span>
-                                    <span>({book.stats?.ratingsCount || 0} ratings)</span>
+                                    <span className="text-white/70">{book.stats?.avgRating?.toFixed(1) || '0.0'}</span>
+                                    <span>({book.stats?.ratingCount || 0} ratings)</span>
                                 </span>
                                 <span className="flex items-center gap-1.5">
                                     <BookOpen size={14} />
-                                    <span>{book.stats?.readsCount || 0} reads</span>
+                                    <span>{book.stats?.readCount || 0} reads</span>
                                 </span>
                                 <Link to={`/genres/${book.genre}`} className="hover:text-[#d4af37] transition-colors uppercase text-xs tracking-wider">
                                     {book.genre}
@@ -199,9 +218,170 @@ const BookDetails = () => {
                                 )}
                             </div>
                         </div>
+                        {/* Rating & Review Section */}
+                        <div className="mt-8 p-6 rounded-lg bg-white/[0.02] border border-white/5">
+                            <h3 className="text-lg font-heading text-[#e8e1c9] mb-4 flex items-center gap-2">
+                                <MessageCircle size={18} />
+                                <span>Your Review</span>
+                            </h3>
+
+                            {user ? (
+                                <div className="space-y-4">
+                                    {myState?.review && !isEditingReview ? (
+                                        <div className="bg-white/5 p-4 rounded relative group">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex gap-1">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size={14}
+                                                            className={i < (myState.rating || 0) ? "fill-[#d4af37] text-[#d4af37]" : "text-gray-700"}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs text-gray-500 uppercase tracking-wider">Your Review</span>
+                                            </div>
+                                            <p className="text-gray-300 italic font-serif text-sm">"{myState.review}"</p>
+
+                                            <button
+                                                onClick={() => setIsEditingReview(true)}
+                                                className="absolute top-4 right-4 text-xs text-[#d4af37] opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest hover:underline"
+                                            >
+                                                Edit
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Star Rating Input */}
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm text-gray-400 uppercase tracking-wider">Rating</span>
+                                                <div className="flex gap-1">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <button
+                                                            key={star}
+                                                            onClick={() => handleStatusUpdate(null, star)}
+                                                            className="focus:outline-none transition-transform hover:scale-110"
+                                                        >
+                                                            <Star
+                                                                size={24}
+                                                                className={star <= (myState?.rating || 0) ? "fill-[#d4af37] text-[#d4af37]" : "text-gray-600"}
+                                                            />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Review Text Area */}
+                                            <div>
+                                                <textarea
+                                                    value={myState?.review || ''}
+                                                    onChange={(e) => setMyState(prev => ({ ...prev, review: e.target.value }))}
+                                                    placeholder="Write your thoughts on this book..."
+                                                    className="w-full bg-[#0b0b0c] border border-white/10 rounded p-3 text-sm text-gray-300 focus:border-[#d4af37] focus:outline-none min-h-[100px]"
+                                                />
+                                                <div className="flex justify-end mt-2 gap-3">
+                                                    {isEditingReview && (
+                                                        <button
+                                                            onClick={() => setIsEditingReview(false)}
+                                                            className="px-4 py-2 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded hover:bg-white/5 transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            handleStatusUpdate(null, null, myState?.review);
+                                                            setIsEditingReview(false);
+                                                        }}
+                                                        className="px-4 py-2 bg-[#d4af37] text-black text-xs font-bold uppercase tracking-widest rounded hover:bg-white transition-colors"
+                                                    >
+                                                        Save Review
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-sm text-gray-500 mb-2">Log in to rate and review this book.</p>
+                                    <button onClick={() => navigate('/login')} className="text-[#d4af37] text-xs uppercase tracking-widest hover:underline">
+                                        Log In
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Community Reviews */}
+                        <div className="mt-12">
+                            <h3 className="text-lg font-heading text-[#e8e1c9] mb-6 flex items-center gap-2">
+                                <span className="h-px w-8 bg-[#d4af37]/50"></span>
+                                Community Voice
+                            </h3>
+
+                            <CommunityReviews bookId={id} />
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const CommunityReviews = ({ bookId }) => {
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const { data } = await api.get(`/interactions/book/${bookId}/reviews`);
+                setReviews(data.data);
+            } catch (err) {
+                console.error("Failed to load reviews", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReviews();
+    }, [bookId]);
+
+    if (loading) return <div className="text-xs text-gray-500">Loading whispers...</div>;
+    if (reviews.length === 0) return <div className="text-sm text-gray-500 italic">No public thoughts yet. Be the first.</div>;
+
+    return (
+        <div className="space-y-6">
+            {reviews.map((review) => (
+                <div key={review._id} className="bg-white/[0.02] border border-white/5 p-6 rounded relative">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10">
+                            {review.user.avatar ? (
+                                <img src={review.user.avatar} alt={review.user.username} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-xs text-[#d4af37]">{review.user.username[0]}</span>
+                            )}
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-medium text-gray-300">{review.user.username}</h4>
+                            <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star
+                                        key={i}
+                                        size={10}
+                                        className={i < review.rating ? "fill-[#d4af37] text-[#d4af37]" : "text-gray-700"}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        <span className="text-[10px] text-gray-600 ml-auto uppercase tracking-wider">
+                            {new Date(review.lastInteractedAt).toLocaleDateString()}
+                        </span>
+                    </div>
+                    <p className="text-gray-400 text-sm leading-relaxed font-serif italic pl-11">
+                        "{review.review}"
+                    </p>
+                </div>
+            ))}
         </div>
     );
 };

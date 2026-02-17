@@ -14,7 +14,7 @@ exports.getProfile = catchAsync(async (req, res, next) => {
         status: 'READING'
     }).populate({
         path: 'book',
-        select: 'title authors coverImage'
+        select: 'title author files'
     });
 
     const completedCountPromise = UserBookState.countDocuments({

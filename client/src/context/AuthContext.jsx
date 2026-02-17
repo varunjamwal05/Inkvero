@@ -18,14 +18,29 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
+            // Try to use existing token first
+            if (localStorage.getItem('accessToken')) {
+                try {
+                    const meRes = await api.get('/auth/me');
+                    setUser(meRes.data.data);
+                    setLoading(false);
+                    return;
+                } catch (err) {
+                    // Token invalid/expired, try refresh below
+                    console.log('Access token invalid, trying refresh...', err);
+                }
+            }
+
             try {
-                // Just hit /me or /time endpoint, or rely on cookie being sent automatically
-                // But original logic called /auth/refresh to get new access token.
-                // With cookie-only flow, we just need to verify session.
-                // We'll call /auth/me instead of refresh, as refresh is for rotating tokens.
-                // Or if we need to refresh the cookie, call refresh.
-                // Let's call refresh to ensure cookie is valid/rotated if needed, but we don't need the data.
-                await api.get('/auth/refresh');
+                // Try refresh (cookie-based)
+                const refreshRes = await api.get('/auth/refresh');
+
+                // If refresh returns a new token, store it!
+                if (refreshRes.data?.accessToken) {
+                    localStorage.setItem('accessToken', refreshRes.data.accessToken);
+                } else if (refreshRes.data?.token) {
+                    localStorage.setItem('accessToken', refreshRes.data.token);
+                }
 
                 // Get user details
                 const meRes = await api.get('/auth/me');
@@ -34,6 +49,7 @@ export const AuthProvider = ({ children }) => {
                 // Token invalid or expired
                 console.log('Session expired or invalid, clearing auth state.');
                 localStorage.removeItem('hasSession');
+                localStorage.removeItem('accessToken');
                 setUser(null);
             }
             setLoading(false);
@@ -45,6 +61,9 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const { data } = await api.post('/auth/login', { email, password });
         localStorage.setItem('hasSession', 'true');
+        if (data.token) {
+            localStorage.setItem('accessToken', data.token);
+        }
         setUser(data.data);
         return data;
     };
@@ -52,6 +71,9 @@ export const AuthProvider = ({ children }) => {
     const register = async (username, email, password) => {
         const { data } = await api.post('/auth/register', { username, email, password });
         localStorage.setItem('hasSession', 'true');
+        if (data.token) {
+            localStorage.setItem('accessToken', data.token);
+        }
         setUser(data.data);
         return data;
     };
@@ -63,6 +85,7 @@ export const AuthProvider = ({ children }) => {
             console.error(error);
         }
         localStorage.removeItem('hasSession');
+        localStorage.removeItem('accessToken');
         setUser(null);
     };
 

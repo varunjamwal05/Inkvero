@@ -11,7 +11,7 @@ exports.interactWithBook = catchAsync(async (req, res, next) => {
     const bookId = req.params.bookId;
     const userId = req.user.id;
 
-    let state = await UserBookState.findOne({ user: userId, book: bookId });
+    const state = await UserBookState.findOne({ user: userId, book: bookId });
 
     if (!state) {
         state = new UserBookState({ user: userId, book: bookId });
@@ -24,7 +24,7 @@ exports.interactWithBook = catchAsync(async (req, res, next) => {
         if (progress > state.maxProgress) state.maxProgress = progress;
     }
     if (rating) state.rating = rating;
-    if (review) state.review = review;
+    if (review !== undefined) state.review = review;
     if (totalPages) state.personalTotalPages = totalPages;
 
     state.lastInteractedAt = Date.now();
@@ -92,9 +92,43 @@ exports.getMyLibrary = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Remove interaction (Remove from library)
-// @route   DELETE /api/v1/interactions/:bookId
+// @desc    Get interaction for a specific book
+// @route   GET /api/v1/interactions/:bookId
 // @access  Private
+exports.getInteraction = catchAsync(async (req, res, next) => {
+    const bookId = req.params.bookId;
+    const userId = req.user.id;
+
+    const state = await UserBookState.findOne({ user: userId, book: bookId });
+
+    res.status(200).json({
+        status: 'success',
+        data: state || null
+    });
+});
+
+// @desc    Get all reviews for a book
+// @route   GET /api/v1/interactions/book/:bookId/reviews
+// @access  Public
+exports.getBookReviews = catchAsync(async (req, res, next) => {
+    const { page = 1, limit = 10 } = req.query;
+
+    const reviews = await UserBookState.find({
+        book: req.params.bookId,
+        review: { $exists: true, $ne: '' }
+    })
+        .populate('user', 'username avatar')
+        .sort('-lastInteractedAt')
+        .skip((page - 1) * limit)
+        .limit(parseInt(limit));
+
+    res.status(200).json({
+        status: 'success',
+        results: reviews.length,
+        data: reviews
+    });
+});
+
 exports.removeInteraction = catchAsync(async (req, res, next) => {
     const bookId = req.params.bookId;
     const userId = req.user.id;

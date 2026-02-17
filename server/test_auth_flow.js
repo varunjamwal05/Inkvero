@@ -41,7 +41,7 @@ async function testAuth() {
         }
         console.log('Login success:', loginData.status);
 
-        const accessToken = loginData.data.accessToken;
+        const accessToken = loginData.token || loginData.data.accessToken;
         console.log('Access Token received:', !!accessToken);
 
         // Check for Set-Cookie header

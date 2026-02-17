@@ -6,7 +6,12 @@ const User = require('../models/User');
 const protect = catchAsync(async (req, res, next) => {
     let token;
 
-    if (req.cookies.token) {
+    // 1. Check for token in Authorization header
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+    // 2. Check for token in Cookies (fallback)
+    else if (req.cookies.token) {
         token = req.cookies.token;
     }
 
