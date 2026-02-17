@@ -19,8 +19,13 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                const { data } = await api.get('/auth/refresh');
-                api.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+                // Just hit /me or /time endpoint, or rely on cookie being sent automatically
+                // But original logic called /auth/refresh to get new access token.
+                // With cookie-only flow, we just need to verify session.
+                // We'll call /auth/me instead of refresh, as refresh is for rotating tokens.
+                // Or if we need to refresh the cookie, call refresh.
+                // Let's call refresh to ensure cookie is valid/rotated if needed, but we don't need the data.
+                await api.get('/auth/refresh');
 
                 // Get user details
                 const meRes = await api.get('/auth/me');
@@ -30,7 +35,6 @@ export const AuthProvider = ({ children }) => {
                 console.log('Session expired or invalid, clearing auth state.');
                 localStorage.removeItem('hasSession');
                 setUser(null);
-                delete api.defaults.headers.common['Authorization'];
             }
             setLoading(false);
         };
@@ -40,7 +44,6 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const { data } = await api.post('/auth/login', { email, password });
-        api.defaults.headers.common['Authorization'] = `Bearer ${data.data.accessToken}`;
         localStorage.setItem('hasSession', 'true');
         setUser(data.data);
         return data;
@@ -48,7 +51,6 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, email, password) => {
         const { data } = await api.post('/auth/register', { username, email, password });
-        api.defaults.headers.common['Authorization'] = `Bearer ${data.data.accessToken}`;
         localStorage.setItem('hasSession', 'true');
         setUser(data.data);
         return data;
@@ -62,7 +64,6 @@ export const AuthProvider = ({ children }) => {
         }
         localStorage.removeItem('hasSession');
         setUser(null);
-        delete api.defaults.headers.common['Authorization'];
     };
 
     return (

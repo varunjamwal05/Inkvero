@@ -22,24 +22,15 @@ exports.register = catchAsync(async (req, res, next) => {
         password
     });
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    // Generate token
+    const token = generateAccessToken(user._id);
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    // Save refresh token to DB
-    await RefreshToken.create({
-        token: refreshToken, // usage: store hashed version in prod
-        user: user._id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-    });
-
-    // Send refresh token in cookie
-    // Send refresh token in cookie
-    res.cookie('refreshToken', refreshToken, {
+    // Send token in cookie
+    res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // For local dev
-        sameSite: 'lax',
-        path: '/api/v1/auth/refresh',
+        secure: isProduction,
+        sameSite: isProduction ? 'None' : 'Lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -49,8 +40,7 @@ exports.register = catchAsync(async (req, res, next) => {
             _id: user._id,
             username: user.username,
             email: user.email,
-            role: user.role,
-            accessToken
+            role: user.role
         }
     });
 });
@@ -74,25 +64,16 @@ exports.login = catchAsync(async (req, res, next) => {
         return next(new AppError('Your account has been suspended. Please contact support.', 403, 'AUTH_BANNED'));
     }
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    // Generate token (using matching expiry to cookie)
+    const token = generateAccessToken(user._id);
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    // Rotate/Create Refresh Token
-    // For strict security: Invalidate old refresh tokens if rotating?
-    // Strategy: Allow multiple devices, so just create new one.
-    await RefreshToken.create({
-        token: refreshToken,
-        user: user._id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    });
-
-    res.cookie('refreshToken', refreshToken, {
+    // Send token in cookie (HTTP-Only, Secure)
+    res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // For local dev
-        sameSite: 'lax',
-        path: '/api/v1/auth/refresh',
-        maxAge: 7 * 24 * 60 * 60 * 1000
+        secure: isProduction, // Production requirement
+        sameSite: isProduction ? 'None' : 'Lax', // Cross-site cookie (Frontend on Vercel, Backend on Render)
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.status(200).json({
@@ -102,8 +83,7 @@ exports.login = catchAsync(async (req, res, next) => {
             username: user.username,
             email: user.email,
             role: user.role,
-            avatar: user.avatar,
-            accessToken
+            avatar: user.avatar
         }
     });
 });
@@ -173,18 +153,22 @@ exports.refresh = catchAsync(async (req, res, next) => {
 // @route   POST /api/v1/auth/logout
 // @access  Public
 exports.logout = catchAsync(async (req, res, next) => {
-    const cookies = req.cookies;
-    if (!cookies?.refreshToken) return res.sendStatus(204);
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    const refreshToken = cookies.refreshToken;
-    await RefreshToken.deleteOne({ token: refreshToken });
+    res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: isProduction ? 'None' : 'Lax',
+        secure: isProduction
+    });
 
+    // Also clear refreshToken just in case
     res.clearCookie('refreshToken', {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: false, // For local dev
+        sameSite: isProduction ? 'None' : 'Lax',
+        secure: isProduction,
         path: '/api/v1/auth/refresh'
     });
+
     res.status(200).json({ status: 'success', message: 'Logged out' });
 });
 
