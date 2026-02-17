@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getImageUrl } from '../utils/imageUtils';
 
 const Home = () => {
     const activities = [
@@ -16,20 +17,20 @@ const Home = () => {
     ];
 
     const floatingBooks = [
-        { src: "/book-covers/pg11.jpg", initial: { top: "12%", left: "8%" }, delay: 0 },
-        { src: "/book-covers/pg1342.jpg", initial: { top: "25%", right: "12%" }, delay: 5 },
-        { src: "/book-covers/pg345.jpg", initial: { bottom: "18%", left: "18%" }, delay: 2 },
-        { src: "/book-covers/pg35.jpg", initial: { bottom: "28%", right: "22%" }, delay: 7 },
-        { src: "/book-covers/pg132.jpg", initial: { top: "45%", left: "82%" }, delay: 4 },
+        { src: getImageUrl("book-covers/pg11.jpg"), initial: { top: "12%", left: "8%" }, delay: 0 },
+        { src: getImageUrl("book-covers/pg1342.jpg"), initial: { top: "25%", right: "12%" }, delay: 5 },
+        { src: getImageUrl("book-covers/pg345.jpg"), initial: { bottom: "18%", left: "18%" }, delay: 2 },
+        { src: getImageUrl("book-covers/pg35.jpg"), initial: { bottom: "28%", right: "22%" }, delay: 7 },
+        { src: getImageUrl("book-covers/pg132.jpg"), initial: { top: "45%", left: "82%" }, delay: 4 },
         // Additional covers for denser atmosphere
-        { src: "/book-covers/pg11.jpg", initial: { top: "5%", left: "45%" }, delay: 1.5 },
-        { src: "/book-covers/pg1342.jpg", initial: { bottom: "8%", right: "48%" }, delay: 3.5 },
-        { src: "/book-covers/pg345.jpg", initial: { top: "65%", right: "6%" }, delay: 2.5 },
-        { src: "/book-covers/pg35.jpg", initial: { top: "78%", left: "4%" }, delay: 6 },
+        { src: getImageUrl("book-covers/pg11.jpg"), initial: { top: "5%", left: "45%" }, delay: 1.5 },
+        { src: getImageUrl("book-covers/pg1342.jpg"), initial: { bottom: "8%", right: "48%" }, delay: 3.5 },
+        { src: getImageUrl("book-covers/pg345.jpg"), initial: { top: "65%", right: "6%" }, delay: 2.5 },
+        { src: getImageUrl("book-covers/pg35.jpg"), initial: { top: "78%", left: "4%" }, delay: 6 },
         // Top corners specific
-        { src: "/book-covers/pg132.jpg", initial: { top: "8%", right: "5%" }, delay: 0.5 },
-        { src: "/book-covers/pg11.jpg", initial: { top: "15%", left: "2%" }, delay: 4.5 },
-        { src: "/book-covers/pg35.jpg", initial: { top: "2%", left: "20%" }, delay: 2.2 },
+        { src: getImageUrl("book-covers/pg132.jpg"), initial: { top: "8%", right: "5%" }, delay: 0.5 },
+        { src: getImageUrl("book-covers/pg11.jpg"), initial: { top: "15%", left: "2%" }, delay: 4.5 },
+        { src: getImageUrl("book-covers/pg35.jpg"), initial: { top: "2%", left: "20%" }, delay: 2.2 },
     ];
 
     return (
