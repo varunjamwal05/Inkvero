@@ -19,7 +19,7 @@ const interactionRoutes = require('./routes/interactionRoutes');
 dotenv.config();
 
 // Connect to database
-connectDB();
+// connectDB(); // Moved to startup
 
 // Start Worker
 require('./services/WorkerService').start();
@@ -88,6 +88,8 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    });
 });
