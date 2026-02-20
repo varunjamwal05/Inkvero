@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Search, Filter, BookOpen } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import BookCover from '../components/BookCover';
 import { useBookTransition } from '../context/BookTransitionContext';
 import { useAuth } from '../context/AuthContext';
-import { Trash2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react'; // Assuming valid icons, but using SVGs directly in loop to be safe if icons missing
+import { Trash2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
 const Explore = () => {
     const [books, setBooks] = useState([]);
@@ -17,23 +18,53 @@ const Explore = () => {
     const { startTransition } = useBookTransition();
     const { user } = useAuth();
 
-    const handleAdminAction = async (action, bookId) => {
-        if (!confirm(`Are you sure you want to ${action} this book?`)) return;
+    const handleBookInteraction = async (bookId, action) => {
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to {action} this book?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-xs transition-colors uppercase tracking-wider"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            performBookInteraction(bookId, action);
+                        }}
+                    >
+                        Confirm
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '📚' });
+    };
 
+    const performBookInteraction = async (bookId, action) => {
         try {
             if (action === 'delete') {
                 await api.delete(`/admin/books/${bookId}`);
                 setBooks(books.filter(b => b._id !== bookId));
+                toast.success('Book deleted successfully!');
             } else if (action === 'hide') {
                 const { data } = await api.patch(`/admin/books/${bookId}/hide`);
                 setBooks(books.map(b => b._id === bookId ? { ...b, isHidden: data.data.isHidden } : b));
+                toast.success(`Book ${data.data.isHidden ? 'hidden' : 'unhidden'} successfully!`);
             } else if (action === 'verify') {
                 const { data } = await api.patch(`/admin/books/${bookId}/verify`);
                 setBooks(books.map(b => b._id === bookId ? { ...b, isVerified: data.data.isVerified } : b));
+                toast.success(`Book ${data.data.isVerified ? 'verified' : 'unverified'} successfully!`);
+            } else if (action === 'read') {
+                // Open PDF logic would go here, currently placeholder based on instruction context
+                // For now, assuming standard read action behavior
+                toast.success("Opening book...");
             }
         } catch (err) {
-            console.error(`Failed to ${action} book:`, err);
-            alert(`Failed to ${action} book`);
+            console.error(err);
+            toast.error(`Failed to ${action} book`);
         }
     };
 
@@ -218,7 +249,7 @@ const Explore = () => {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleAdminAction('delete', book._id);
+                                                handleBookInteraction('delete', book._id);
                                             }}
                                             className="bg-red-900/80 hover:bg-red-800 text-white p-1.5 rounded-md backdrop-blur-sm transition-colors border border-red-500/30"
                                             title="Delete Book"
@@ -229,7 +260,7 @@ const Explore = () => {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleAdminAction('hide', book._id);
+                                                handleBookInteraction('hide', book._id);
                                             }}
                                             className={`${book.isHidden ? 'bg-amber-600/80 hover:bg-amber-500' : 'bg-zinc-800/80 hover:bg-zinc-700'} text-white p-1.5 rounded-md backdrop-blur-sm transition-colors border border-white/10`}
                                             title={book.isHidden ? "Unhide" : "Hide"}
@@ -240,7 +271,7 @@ const Explore = () => {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleAdminAction('verify', book._id);
+                                                handleBookInteraction('verify', book._id);
                                             }}
                                             className={`${book.isVerified ? 'bg-green-600/80 hover:bg-green-500' : 'bg-zinc-800/80 hover:bg-zinc-700'} text-white p-1.5 rounded-md backdrop-blur-sm transition-colors border border-white/10`}
                                             title={book.isVerified ? "Unverify" : "Verify"}
@@ -269,8 +300,8 @@ const Explore = () => {
                                     key={pageNum}
                                     onClick={() => handlePageChange(pageNum)}
                                     className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${page === pageNum
-                                            ? 'bg-amber-500 text-black font-semibold'
-                                            : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
+                                        ? 'bg-amber-500 text-black font-semibold'
+                                        : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
                                         }`}
                                 >
                                     {pageNum}

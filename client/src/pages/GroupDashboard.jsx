@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Users, BookOpen, Copy, Share2, Trash2 } from 'lucide-react';
@@ -7,6 +8,7 @@ import BookCover from '../components/BookCover';
 
 const GroupDashboard = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [groupData, setGroupData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ const GroupDashboard = () => {
             setMessageInput('');
         } catch (err) {
             console.error('Failed to post message:', err);
-            alert('Failed to post message');
+            toast.error('Failed to post message');
         }
     };
 
@@ -98,51 +100,124 @@ const GroupDashboard = () => {
         }
     };
     const handleDeleteGroup = async () => {
-        if (!confirm('Are you sure you want to delete this group? This action cannot be undone.')) return;
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to delete this group? This action cannot be undone.</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            deleteGroup();
+                        }}
+                    >
+                        Delete
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
+    };
+
+    const deleteGroup = async () => {
         try {
             await api.delete(`/groups/${id}`);
-            window.location.href = '/dashboard';
+            toast.success('Group deleted successfully');
+            navigate('/groups');
         } catch (err) {
             console.error(err);
-            if (user.role === 'admin') {
-                try {
-                    await api.delete(`/admin/groups/${id}`);
-                    window.location.href = '/dashboard';
-                } catch (e) {
-                    alert('Failed to delete group');
-                }
-            } else {
-                alert(err.response?.data?.message || 'Failed to delete group');
-            }
+            toast.error(err.response?.data?.message || 'Failed to delete group');
         }
     };
 
     const handleLeaveGroup = async () => {
-        if (!confirm('Are you sure you want to leave this circle?')) return;
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to leave this circle?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            leaveGroup();
+                        }}
+                    >
+                        Leave
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
+    };
+
+    const leaveGroup = async () => {
         try {
             await api.post(`/groups/${id}/leave`);
-            window.location.href = '/groups';
+            toast.success('Left group successfully');
+            navigate('/groups');
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || 'Failed to leave group');
+            toast.error(err.response?.data?.message || 'Failed to leave group');
         }
     };
 
     const handleBanUser = async (userId, isBanned) => {
-        if (!confirm(`Are you sure you want to ${isBanned ? 'unban' : 'ban'} this user?`)) return;
+        const action = isBanned ? 'unban' : 'ban';
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to {action} this user?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-xs transition-colors uppercase tracking-wider"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            banUser(userId, isBanned);
+                        }}
+                    >
+                        Confirm
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
+    };
+
+    const banUser = async (userId, isBanned) => {
         try {
+            // Optimistic update
+            setGroupData(prev => ({
+                ...prev,
+                members: prev.members.map(m => m.user._id === userId ? { ...m, user: { ...m.user, isBanned: !isBanned } } : m)
+            }));
+
             if (isBanned) {
                 await api.patch(`/admin/users/${userId}/unban`);
             } else {
                 await api.patch(`/admin/users/${userId}/ban`);
             }
-            setGroupData(prev => ({
-                ...prev,
-                members: prev.members.map(m => m.user._id === userId ? { ...m, user: { ...m.user, isBanned: !isBanned } } : m)
-            }));
+            toast.success(`User ${isBanned ? 'unbanned' : 'banned'} successfully`);
         } catch (err) {
             console.error(err);
-            alert('Failed to update user status');
+            // Revert on failure
+            // Re-fetch group data to revert optimistic update and get fresh state
+            const { data } = await api.get(`/groups/${id}`);
+            setGroupData(data.data);
+            toast.error('Failed to update user status');
         }
     };
 
@@ -165,7 +240,7 @@ const GroupDashboard = () => {
             }));
         } catch (err) {
             console.error(err);
-            alert('Failed to update total pages');
+            toast.error('Failed to update total pages');
         }
     };
 
@@ -232,7 +307,7 @@ const GroupDashboard = () => {
                                 className="bg-white text-black px-4 py-2 rounded-full border border-transparent font-medium text-xs tracking-wide flex items-center gap-2 hover:bg-amber-400 hover:scale-105 transition-all duration-300 shadow-md shadow-white/5"
                                 onClick={() => {
                                     navigator.clipboard.writeText(`${window.location.origin}/join/${group.joinCode}`);
-                                    alert('Link copied to clipboard!');
+                                    toast.success('Link copied to clipboard!');
                                 }}
                             >
                                 <Share2 size={12} /> Share Link
@@ -353,18 +428,29 @@ const GroupDashboard = () => {
 
                                 {isOwner && member.user._id !== user._id && (
                                     <button
-                                        onClick={async () => {
-                                            if (!confirm('Are you sure you want to remove this member?')) return;
-                                            try {
-                                                await api.delete(`/groups/${id}/members/${member.user._id}`);
-                                                setGroupData(prev => ({
-                                                    ...prev,
-                                                    members: prev.members.filter(m => m.user._id !== member.user._id)
-                                                }));
-                                            } catch (err) {
-                                                console.error(err);
-                                                alert(err.response?.data?.message || 'Failed to remove member');
-                                            }
+                                        onClick={() => {
+                                            toast((t) => (
+                                                <div className="flex flex-col gap-2">
+                                                    <p className="font-medium text-sm">Are you sure you want to remove this member?</p>
+                                                    <div className="flex gap-2 justify-end mt-1">
+                                                        <button
+                                                            className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                                                            onClick={() => {
+                                                                toast.dismiss(t.id);
+                                                                handleRemoveMember(member.user._id);
+                                                            }}
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                        <button
+                                                            className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                                                            onClick={() => toast.dismiss(t.id)}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ), { duration: 5000, icon: '⚠️' });
                                         }}
                                         className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 bg-red-500/10 text-red-400 hover:bg-red-500/20 ml-1"
                                         title="Remove Member"
@@ -430,40 +516,42 @@ const GroupDashboard = () => {
             </div>
 
             {/* Completion Modal */}
-            {showCompletionModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-[#161616] border border-white/10 rounded-2xl p-8 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50"></div>
+            {
+                showCompletionModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-[#161616] border border-white/10 rounded-2xl p-8 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50"></div>
 
-                        <div className="text-center">
-                            <div className="mb-6 relative inline-block">
-                                <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
-                                <BookCover
-                                    src={group.currentBook?.coverUrl || 'https://placehold.co/300x450?text=No+Cover'}
-                                    alt={group.currentBook?.title}
-                                    className="w-24 h-36 mx-auto rounded shadow-lg relative z-10"
-                                />
-                                <div className="absolute -bottom-3 -right-3 bg-amber-500 text-black p-2 rounded-full border-4 border-[#161616] z-20">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <div className="text-center">
+                                <div className="mb-6 relative inline-block">
+                                    <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+                                    <BookCover
+                                        src={group.currentBook?.coverUrl || 'https://placehold.co/300x450?text=No+Cover'}
+                                        alt={group.currentBook?.title}
+                                        className="w-24 h-36 mx-auto rounded shadow-lg relative z-10"
+                                    />
+                                    <div className="absolute -bottom-3 -right-3 bg-amber-500 text-black p-2 rounded-full border-4 border-[#161616] z-20">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </div>
                                 </div>
+
+                                <h3 className="text-xl font-heading text-white mb-2">Journey Completed</h3>
+                                <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+                                    You have finished reading <span className="text-amber-500/90 italic">{group.currentBook?.title}</span>.
+                                </p>
+
+                                <button
+                                    onClick={() => setShowCompletionModal(false)}
+                                    className="w-full py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 hover:text-white transition-all text-sm font-medium tracking-wide uppercase"
+                                >
+                                    Close
+                                </button>
                             </div>
-
-                            <h3 className="text-xl font-heading text-white mb-2">Journey Completed</h3>
-                            <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                                You have finished reading <span className="text-amber-500/90 italic">{group.currentBook?.title}</span>.
-                            </p>
-
-                            <button
-                                onClick={() => setShowCompletionModal(false)}
-                                className="w-full py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 hover:text-white transition-all text-sm font-medium tracking-wide uppercase"
-                            >
-                                Close
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

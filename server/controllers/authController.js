@@ -8,6 +8,53 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/generate
 // @desc    Register user
 // @route   POST /api/v1/auth/register
 // @access  Public
+// Helper function to send token
+const createSendToken = async (user, statusCode, res) => {
+    const token = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Save refresh token to DB
+    await RefreshToken.create({
+        token: refreshToken,
+        user: user._id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+    });
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Options for access token cookie
+    const cookieOptions = {
+        expires: new Date(Date.now() + 15 * 60 * 1000), // 15 min matching JWT_EXPIRE
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'None' : 'Lax'
+    };
+
+    // Options for refresh token cookie
+    const refreshCookieOptions = {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'None' : 'Lax',
+        path: '/api/v1/auth/refresh' // Limit scope of refresh token
+    };
+
+    res.cookie('token', token, cookieOptions);
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
+    // Remove password from output
+    user.password = undefined;
+
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: user
+    });
+};
+
+// @desc    Register user
+// @route   POST /api/v1/auth/register
+// @access  Public
 exports.register = catchAsync(async (req, res, next) => {
     const { username, email, password } = req.body;
 
@@ -22,28 +69,7 @@ exports.register = catchAsync(async (req, res, next) => {
         password
     });
 
-    // Generate token
-    const token = generateAccessToken(user._id);
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    // Send token in cookie
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'None' : 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    res.status(201).json({
-        status: 'success',
-        token, // Return token for client-side storage
-        data: {
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role
-        }
-    });
+    await createSendToken(user, 201, res);
 });
 
 // @desc    Login user
@@ -65,29 +91,7 @@ exports.login = catchAsync(async (req, res, next) => {
         return next(new AppError('Your account has been suspended. Please contact support.', 403, 'AUTH_BANNED'));
     }
 
-    // Generate token (using matching expiry to cookie)
-    const token = generateAccessToken(user._id);
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    // Send token in cookie (HTTP-Only, Secure)
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: isProduction, // Production requirement
-        sameSite: isProduction ? 'None' : 'Lax', // Cross-site cookie (Frontend on Vercel, Backend on Render)
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    res.status(200).json({
-        status: 'success',
-        token, // Return token for client-side storage
-        data: {
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            avatar: user.avatar
-        }
-    });
+    await createSendToken(user, 200, res);
 });
 
 // @desc    Refresh Token
@@ -137,10 +141,11 @@ exports.refresh = catchAsync(async (req, res, next) => {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     });
 
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        secure: false, // For local dev
-        sameSite: 'lax',
+        secure: isProduction, // Adhere to environment config
+        sameSite: isProduction ? 'None' : 'Lax',
         path: '/api/v1/auth/refresh',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });

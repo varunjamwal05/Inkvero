@@ -5,7 +5,7 @@ const Layout = ({ children }) => {
     const location = useLocation();
     // Normalize path to ignore trailing slashes and query params
     const path = location.pathname.toLowerCase().replace(/\/$/, '');
-    const isAuthPage = ['/login', '/register'].includes(path) || path.startsWith('/login') || path.startsWith('/register');
+    const isAuthPage = ['/login', '/register', '/forgot-password'].includes(path) || path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/reset-password');
 
     const isHomePage = path === '' || path === '/';
 

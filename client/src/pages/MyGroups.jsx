@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { Users, BookOpen, Plus, ArrowRight, MoreVertical, LogOut } from 'lucide-react';
 import api from '../api/axios';
 
@@ -22,13 +23,38 @@ const MyGroups = () => {
     }, []);
 
     const handleLeaveGroup = async (groupId, groupName) => {
-        if (!confirm(`Are you sure you want to leave "${groupName}"?`)) return;
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to leave "{groupName}"?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            leaveGroup(groupId);
+                        }}
+                    >
+                        Leave
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
+    };
+
+    const leaveGroup = async (groupId) => {
         try {
             await api.post(`/groups/${groupId}/leave`);
             setGroups(prev => prev.filter(g => g._id !== groupId));
+            toast.success('Left group successfully');
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || 'Failed to leave group');
+            toast.error(err.response?.data?.message || 'Failed to leave group');
         }
     };
 

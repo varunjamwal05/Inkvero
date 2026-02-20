@@ -4,6 +4,11 @@ const AppError = require('../utils/AppError');
 const User = require('../models/User');
 
 const protect = catchAsync(async (req, res, next) => {
+    // 0. Handle Preflight (OPTIONS) - prevent 401 on CORS check
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+
     let token;
 
     // 1. Check for token in Authorization header
@@ -16,6 +21,7 @@ const protect = catchAsync(async (req, res, next) => {
     }
 
     if (!token) {
+        console.log('Auth Failed: No token provided');
         return next(new AppError('Not authorized to access this route', 401, 'AUTH_MISSING'));
     }
 
@@ -24,6 +30,7 @@ const protect = catchAsync(async (req, res, next) => {
         req.user = await User.findById(decoded.id);
         next();
     } catch (error) {
+        console.log('Auth Failed: Invalid token', error.message);
         return next(new AppError('Not authorized to access this route', 401, 'AUTH_INVALID'));
     }
 });

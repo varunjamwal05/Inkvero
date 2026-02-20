@@ -4,6 +4,8 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Share2, BookOpen, Star, MessageCircle, Clock, User } from 'lucide-react';
 import BookCover from '../components/BookCover';
+import BookOpenOverlay from '../components/BookOpenOverlay';
+import { toast } from 'react-hot-toast';
 
 const BookDetails = () => {
     const { id } = useParams();
@@ -65,11 +67,11 @@ const BookDetails = () => {
                 const pdfUrl = book.files?.pdf || "https://pdfobject.com/pdf/sample.pdf";
                 window.open(pdfUrl, '_blank');
             } else {
-                alert('Updated successfully!');
+                toast.success('Updated successfully!');
             }
         } catch (err) {
             console.error('Interaction failed:', err);
-            alert('Action failed: ' + (err.response?.data?.message || err.message));
+            toast.error('Action failed: ' + (err.response?.data?.message || err.message));
         }
     };
 
@@ -80,7 +82,7 @@ const BookDetails = () => {
                 await api.post('/groups/join', { inviteCode: group.joinCode });
                 navigate(`/groups/${group._id}`);
             } catch (err) {
-                alert('Failed to join group: ' + (err.response?.data?.message || err.message));
+                toast.error('Failed to join group: ' + (err.response?.data?.message || err.message));
             }
         }
     };

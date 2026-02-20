@@ -50,6 +50,14 @@ const userSchema = new mongoose.Schema({
     isBanned: {
         type: Boolean,
         default: false
+    },
+    resetToken: {
+        type: String,
+        default: undefined
+    },
+    resetTokenExpiry: {
+        type: Date,
+        default: undefined
     }
 });
 

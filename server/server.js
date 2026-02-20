@@ -93,3 +93,4 @@ connectDB().then(() => {
         console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
 });
+// Server restart trigger for env update - 2

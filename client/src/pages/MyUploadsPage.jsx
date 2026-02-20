@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Upload, Trash2, Eye, Lock, Globe, Users, BookOpen, AlertCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { Upload, Trash2, Eye, Lock, Globe, Users, BookOpen, AlertCircle, Loader2, Plus, Clock, Layers } from 'lucide-react';
 
 const MyUploadsPage = () => {
     const [books, setBooks] = useState([]);
@@ -72,7 +73,7 @@ const MyUploadsPage = () => {
             setCoverFile(null);
             // Refetch
             fetchMyBooks();
-            alert('Book uploaded successfully!');
+            toast.success('Book uploaded successfully!');
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || 'Upload failed');
@@ -82,13 +83,37 @@ const MyUploadsPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this book?')) return;
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Are you sure you want to delete this book?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            deleteBook(id);
+                        }}
+                    >
+                        Delete
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
+    };
+
+    const deleteBook = async (bookId) => {
         try {
-            await api.delete(`/my-books/${id}`);
-            setBooks(books.filter(b => b._id !== id));
+            await api.delete(`/my-books/${bookId}`);
+            setBooks(books.filter(b => b._id !== bookId));
         } catch (err) {
             console.error(err);
-            alert('Failed to delete book');
+            toast.error('Failed to delete book');
         }
     };
 
@@ -241,8 +266,8 @@ const MyUploadsPage = () => {
                                         />
                                         <div className="absolute top-3 right-3 z-20">
                                             <span className={`px-2 py-1 rounded text-[9px] uppercase tracking-widest font-medium border ${book.visibility === 'private' ? 'bg-black/40 border-white/10 text-gray-400' :
-                                                    book.visibility === 'group' ? 'bg-blue-900/20 border-blue-500/20 text-blue-400' :
-                                                        'bg-green-900/20 border-green-500/20 text-green-400'
+                                                book.visibility === 'group' ? 'bg-blue-900/20 border-blue-500/20 text-blue-400' :
+                                                    'bg-green-900/20 border-green-500/20 text-green-400'
                                                 }`}>
                                                 {book.visibility}
                                             </span>

@@ -125,6 +125,12 @@ const Login = () => {
                     </button>
                 </form>
 
+                <div className="mt-4 text-center">
+                    <Link to="/forgot-password" className="text-xs text-secondary/60 hover:text-highlight transition-colors">
+                        Forgot your password?
+                    </Link>
+                </div>
+
                 <p className="mt-8 text-center text-sm text-secondary/60">
                     Not a member? <Link to="/register" className="text-accent hover:text-highlight font-medium transition-colors">Join the community</Link>
                 </p>
@@ -134,7 +140,7 @@ const Login = () => {
                     Join readers building a better reading habit.
                 </p>
             </div>
-        </div>
+        </div >
     );
 };
 

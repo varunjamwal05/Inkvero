@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BookOpen, Users, Compass, LogOut } from 'lucide-react';
@@ -9,6 +9,20 @@ const Navbar = () => {
     const navigate = useNavigate();
     const [openJoin, setOpenJoin] = useState(false);
     const [openProfile, setOpenProfile] = useState(false);
+    const profileRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setOpenProfile(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleLogout = async () => {
         await logout();
@@ -48,7 +62,7 @@ const Navbar = () => {
                     <div className="hidden md:block">
                         <div className="ml-8 flex items-center space-x-6">
                             {user ? (
-                                <div className="relative group/profile">
+                                <div className="relative group/profile" ref={profileRef}>
                                     <button
                                         onClick={() => setOpenProfile(!openProfile)}
                                         className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] text-[#D4AF37] font-medium overflow-hidden border border-white/[0.15] hover:border-[#D4AF37]/50 hover:bg-white/[0.12] transition-all duration-300 focus:outline-none shadow-sm"

@@ -25,3 +25,11 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# Test & Seed Scripts
+test_*.js
+**/seed/
+**/utils/seedAdmin.js
+
+# Reports
+report.txt

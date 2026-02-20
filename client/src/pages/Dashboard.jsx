@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { BookOpen, Star, Plus, MoreVertical, Trash2, CheckCircle } from 'lucide-react';
+import { Clock, BookOpen, Star, MoreHorizontal, MessageSquare, Plus, MoreVertical, CheckCircle, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import BookCover from '../components/BookCover';
 
@@ -10,17 +11,43 @@ const Dashboard = () => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [completedBook, setCompletedBook] = useState(null);
 
-    const handleRemove = async (e, bookId) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!window.confirm('Remove this book from your library?')) return;
+    const removeBook = async (bookId) => {
         try {
             await api.delete(`/interactions/${bookId}`);
             setLibrary(prev => prev.filter(item => item.book && item.book._id !== bookId));
             setActiveMenu(null);
+            toast.success('Book removed from library');
         } catch (err) {
-            console.error('Failed to remove book:', err);
+            console.error(err);
+            toast.error('Failed to remove book');
         }
+    };
+
+    const handleRemove = async (e, bookId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Remove this book from your library?</p>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        className="px-3 py-1 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded text-xs transition-colors"
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            removeBook(bookId);
+                        }}
+                    >
+                        Remove
+                    </button>
+                    <button
+                        className="px-3 py-1 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded text-xs transition-colors"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, icon: '⚠️' });
     };
 
     const handleUpdateStatus = async (e, bookId, status, progress, totalPages) => {

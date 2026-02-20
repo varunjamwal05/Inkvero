@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { X, Search, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const CreateGroup = () => {
     const navigate = useNavigate();
@@ -53,20 +54,21 @@ const CreateGroup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedBook) return alert('Please select a book');
+        if (!selectedBook) return toast.error('Please select a book');
 
         setLoading(true);
         try {
-            const { data } = await api.post('/groups', {
+            const res = await api.post('/groups', {
                 name,
                 description,
                 bookId: selectedBook._id,
                 isPrivate
             });
-            navigate(`/groups/${data.data._id}`);
+            toast.success('Group created successfully!');
+            navigate(`/groups/${res.data.data._id}`);
         } catch (err) {
             console.error(err);
-            alert('Failed to create group');
+            toast.error('Failed to create group');
         } finally {
             setLoading(false);
         }

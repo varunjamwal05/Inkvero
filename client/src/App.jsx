@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -12,6 +13,8 @@ import Dashboard from './pages/Dashboard';
 import Explore from './pages/Explore';
 import BookDetails from './pages/BookDetails';
 import GenreBooks from './pages/GenreBooks';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 import CreateGroup from './pages/CreateGroup';
 import JoinGroup from './pages/JoinGroup';
@@ -31,12 +34,15 @@ function App() {
     <AuthProvider>
       <BookTransitionProvider>
         <BookOpenOverlay />
+        <Toaster position="top-center" />
         <Layout>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
               <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+              <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+              <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
               <Route path="/explore" element={<PageTransition><Explore /></PageTransition>} />
               <Route path="/books/:id" element={<PageTransition><BookDetails /></PageTransition>} />
               <Route path="/genres/:genreId" element={<PageTransition><GenreBooks /></PageTransition>} />
