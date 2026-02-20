@@ -12,6 +12,7 @@ The application features a polished "Navy & Cream" theme, offering a serene and 
 -   **Progress Tracking**: Update your reading progress in real-time.
 -   **Discovery**: Explore new books and trending titles.
 -   **Responsive Design**: A seamless experience across desktop and mobile devices.
+-   **Enhanced Notifications**: A modern, non-blocking notification system using `react-hot-toast`.
 
 ## Tech Stack
 
@@ -23,6 +24,7 @@ The application features a polished "Navy & Cream" theme, offering a serene and 
 -   **Framer Motion** for animations
 -   **React Router** for navigation
 -   **Axios** for API integration
+-   **React Hot Toast** for notifications
 
 ### Backend
 -   **Node.js** & **Express**
